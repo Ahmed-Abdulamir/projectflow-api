@@ -401,3 +401,9 @@ Planned improvements:
 ## Resume Description
 
 ProjectFlow API is a production-like RESTful backend service written in C++ using Drogon and PostgreSQL. It implements task CRUD operations, layered architecture, PostgreSQL persistence, health checks, input validation, structured error handling, filtering, search, pagination, sorting, and CMake/vcpkg-based build configuration.
+
+Projects CRUD
+project_id в Task
+GET /projects/{id}/tasks
+примеры POST /projects
+примеры POST /tasks с project_id
