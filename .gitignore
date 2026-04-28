@@ -1,0 +1,31 @@
+# Build files
+build/
+out/
+bin/
+obj/
+
+# CMake generated files
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+
+# Visual Studio files
+.vs/
+*.user
+*.suo
+*.vcxproj.user
+
+# Logs
+*.log
+
+# Local secrets / environment files
+run.ps1
+.env
+
+# Local dependencies
+vcpkg/
+
+# OS files
+.DS_Store
+Thumbs.db
