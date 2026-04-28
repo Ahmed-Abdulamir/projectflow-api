@@ -10,10 +10,13 @@ file(GLOB SOURCES
     main.cpp
     controllers/TaskController.cpp
     controllers/ProjectController.cpp
+    controllers/CommentController.cpp
     services/TaskService.cpp
     services/ProjectService.cpp
+    services/CommentService.cpp
     repositories/TaskRepository.cpp
     repositories/ProjectRepository.cpp
+    repositories/CommentRepository.cpp
 )
 
 add_executable(task_manager ${SOURCES})

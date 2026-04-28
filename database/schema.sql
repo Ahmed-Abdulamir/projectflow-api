@@ -1,3 +1,4 @@
+DROP TABLE IF EXISTS comments;
 DROP TABLE IF EXISTS tasks;
 DROP TABLE IF EXISTS projects;
 
@@ -32,4 +33,14 @@ CREATE TABLE tasks (
 
     CONSTRAINT tasks_priority_check
         CHECK (priority IN ('low', 'medium', 'high'))
+);
+
+CREATE TABLE comments (
+    id SERIAL PRIMARY KEY,
+
+    task_id INT NOT NULL REFERENCES tasks(id) ON DELETE CASCADE,
+
+    content TEXT NOT NULL,
+
+    created_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
