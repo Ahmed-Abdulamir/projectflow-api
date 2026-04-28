@@ -9,8 +9,11 @@ find_package(Drogon CONFIG REQUIRED)
 file(GLOB SOURCES
     main.cpp
     controllers/TaskController.cpp
+    controllers/ProjectController.cpp
     services/TaskService.cpp
+    services/ProjectService.cpp
     repositories/TaskRepository.cpp
+    repositories/ProjectRepository.cpp
 )
 
 add_executable(task_manager ${SOURCES})
