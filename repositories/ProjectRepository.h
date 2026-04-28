@@ -3,9 +3,9 @@
 #include "../models/Project.h"
 
 #include <drogon/orm/DbClient.h>
+#include <optional>
 #include <string>
 #include <vector>
-#include <optional>
 
 class ProjectRepository
 {
@@ -17,7 +17,7 @@ public:
         const std::string &description);
 
     std::vector<Project> GetAllProjects();
-    
+
     std::optional<Project> GetProjectById(int id);
 
     std::optional<Project> UpdateProjectById(

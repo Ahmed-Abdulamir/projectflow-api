@@ -4,6 +4,7 @@
 
 struct Task {
     int id;
+    int projectId;
     std::string title;
     std::string description;
     std::string status;

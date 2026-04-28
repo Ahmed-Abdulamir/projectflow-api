@@ -12,6 +12,7 @@ public:
     explicit TaskService(TaskRepository repository);
 
     Task CreateTask(
+        int projectId,
         const std::string& title,
         const std::string& description,
         const std::string& status,
@@ -39,6 +40,8 @@ public:
         const std::string& priority,
         bool completed
     );
+
+    std::vector<Task> GetTasksByProjectId(int projectId);
 
 private:
     TaskRepository repository_;

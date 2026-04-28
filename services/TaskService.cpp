@@ -7,24 +7,33 @@ TaskService::TaskService(TaskRepository repository)
     : repository_(repository) {}
 
 Task TaskService::CreateTask(
-    const std::string& title,
-    const std::string& description,
-    const std::string& status,
-    const std::string& priority
-) {
-    if (title.empty()) {
+    int projectId,
+    const std::string &title,
+    const std::string &description,
+    const std::string &status,
+    const std::string &priority)
+{
+    if (projectId < 0)
+    {
+        throw std::runtime_error("Project id must be positive");
+    }
+
+    if (title.empty())
+    {
         throw std::runtime_error("Title must not be empty");
     }
 
-    if (status != "todo" && status != "in_progress" && status != "done" && status != "cancelled") {
+    if (status != "todo" && status != "in_progress" && status != "done" && status != "cancelled")
+    {
         throw std::runtime_error("Invalid task status");
     }
 
-    if (priority != "low" && priority != "medium" && priority != "high") {
+    if (priority != "low" && priority != "medium" && priority != "high")
+    {
         throw std::runtime_error("Invalid task priority");
     }
 
-    return repository_.CreateTask(title, description, status, priority);
+    return repository_.CreateTask(projectId, title, description, status, priority);
 }
 
 std::vector<Task> TaskService::GetAllTasks(
@@ -124,3 +133,15 @@ std::optional<Task> TaskService::UpdateTaskById(
         completed
     );
 }
+
+std::vector<Task> TaskService::GetTasksByProjectId(int projectId)
+{
+    if (projectId <= 0)
+    {
+        throw std::runtime_error("Project id must be positive");
+    }
+
+    return repository_.GetTasksByProjectId(projectId);
+}
+
+

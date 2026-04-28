@@ -35,6 +35,16 @@ drogon::HttpResponsePtr MakeErrorResponse(
 Json::Value TaskToJson(const Task& task) {
     Json::Value result;
     result["id"] = task.id;
+
+    if (task.projectId == 0)
+    {
+        result["project_id"] = Json::nullValue;
+    }
+    else
+    {
+        result["project_id"] = task.projectId;
+    }
+
     result["title"] = task.title;
     result["description"] = task.description;
     result["status"] = task.status;
@@ -119,6 +129,22 @@ void TaskController::CreateTask(
         std::string status = "todo";
         std::string priority = "medium";
 
+        int projectId = 0;
+
+        if (json->isMember("project_id"))
+        {
+            if (!(*json)["project_id"].isInt())
+            {
+                callback(MakeErrorResponse(
+                    "INVALID_PROJECT_ID",
+                    "Field 'project_id' must be an integer",
+                    drogon::k400BadRequest));
+                return;
+            }
+
+            projectId = (*json)["project_id"].asInt();
+        }
+
         if (json->isMember("description")) {
             if (!(*json)["description"].isString()) {
                 callback(MakeErrorResponse(
@@ -163,7 +189,7 @@ void TaskController::CreateTask(
         TaskRepository repository(dbClient);
         TaskService service(repository);
 
-        Task task = service.CreateTask(title, description, status, priority);
+        Task task = service.CreateTask(projectId, title, description, status, priority);
 
         Json::Value result = TaskToJson(task);
 
@@ -174,6 +200,15 @@ void TaskController::CreateTask(
     }
     catch (const std::exception& e) {
         std::string message = e.what();
+
+        if (message == "Project id must be positive")
+        {
+            callback(MakeErrorResponse(
+                "INVALID_PROJECT_ID",
+                "Project id must be positive",
+                drogon::k400BadRequest));
+            return;
+        }
 
         if (message == "Invalid task status") {
             callback(MakeErrorResponse(

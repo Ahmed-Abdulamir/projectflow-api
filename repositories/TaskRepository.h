@@ -7,25 +7,25 @@
 #include <string>
 #include <vector>
 
-class TaskRepository {
+class TaskRepository
+{
 public:
     explicit TaskRepository(drogon::orm::DbClientPtr client);
 
     Task CreateTask(
-    const std::string& title,
-    const std::string& description,
-    const std::string& status,
-    const std::string& priority
-    );
+        int projectId,
+        const std::string &title,
+        const std::string &description,
+        const std::string &status,
+        const std::string &priority);
 
     std::vector<Task> GetAllTasks(
-        const std::string& status,
-        const std::string& priority,
-        const std::string& search,
-        const std::string& sort,
+        const std::string &status,
+        const std::string &priority,
+        const std::string &search,
+        const std::string &sort,
         int limit,
-        int offset
-    );
+        int offset);
 
     std::optional<Task> GetTaskById(int id);
 
@@ -33,12 +33,13 @@ public:
 
     std::optional<Task> UpdateTaskById(
         int id,
-        const std::string& title,
-        const std::string& description,
-        const std::string& status,
-        const std::string& priority,
-        bool completed
-    );
+        const std::string &title,
+        const std::string &description,
+        const std::string &status,
+        const std::string &priority,
+        bool completed);
+
+    std::vector<Task> GetTasksByProjectId(int projectId);
 
 private:
     drogon::orm::DbClientPtr db_;

@@ -14,6 +14,8 @@ CREATE TABLE projects (
 CREATE TABLE tasks (
     id SERIAL PRIMARY KEY,
 
+    project_id INT REFERENCES projects(id) ON DELETE SET NULL,
+
     title TEXT NOT NULL,
     description TEXT NOT NULL DEFAULT '',
 

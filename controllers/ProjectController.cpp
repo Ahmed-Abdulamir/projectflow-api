@@ -2,6 +2,8 @@
 
 #include "../repositories/ProjectRepository.h"
 #include "../services/ProjectService.h"
+#include "../repositories/TaskRepository.h"
+#include "../services/TaskService.h"
 
 #include <drogon/drogon.h>
 #include <exception>
@@ -32,6 +34,31 @@ namespace
         result["description"] = project.description;
         result["created_at"] = project.createdAt;
         result["updated_at"] = project.updatedAt;
+
+        return result;
+    }
+
+    Json::Value TaskToJson(const Task &task)
+    {
+        Json::Value result;
+        result["id"] = task.id;
+
+        if (task.projectId == 0)
+        {
+            result["project_id"] = Json::nullValue;
+        }
+        else
+        {
+            result["project_id"] = task.projectId;
+        }
+
+        result["title"] = task.title;
+        result["description"] = task.description;
+        result["status"] = task.status;
+        result["priority"] = task.priority;
+        result["completed"] = task.completed;
+        result["created_at"] = task.createdAt;
+        result["updated_at"] = task.updatedAt;
 
         return result;
     }
@@ -350,6 +377,66 @@ void ProjectController::DeleteProjectById(
 
         Json::Value result;
         result["message"] = "Project deleted";
+
+        auto response = drogon::HttpResponse::newHttpJsonResponse(result);
+        response->setStatusCode(drogon::k200OK);
+
+        callback(response);
+    }
+    catch (const std::exception &e)
+    {
+        std::string message = e.what();
+
+        if (message == "Project id must be positive")
+        {
+            callback(MakeErrorResponse(
+                "INVALID_PROJECT_ID",
+                "Project id must be positive",
+                drogon::k400BadRequest));
+            return;
+        }
+
+        callback(MakeErrorResponse(
+            "INTERNAL_SERVER_ERROR",
+            e.what(),
+            drogon::k500InternalServerError));
+    }
+}
+
+void ProjectController::GetProjectTasks(
+    const drogon::HttpRequestPtr &req,
+    std::function<void(const drogon::HttpResponsePtr &)> &&callback,
+    int id)
+{
+    try
+    {
+        auto dbClient = drogon::app().getDbClient();
+
+        ProjectRepository projectRepository(dbClient);
+        ProjectService projectService(projectRepository);
+
+        auto project = projectService.GetProjectById(id);
+
+        if (!project.has_value())
+        {
+            callback(MakeErrorResponse(
+                "PROJECT_NOT_FOUND",
+                "Project not found",
+                drogon::k404NotFound));
+            return;
+        }
+
+        TaskRepository taskRepository(dbClient);
+        TaskService taskService(taskRepository);
+
+        auto tasks = taskService.GetTasksByProjectId(id);
+
+        Json::Value result(Json::arrayValue);
+
+        for (const auto &task : tasks)
+        {
+            result.append(TaskToJson(task));
+        }
 
         auto response = drogon::HttpResponse::newHttpJsonResponse(result);
         response->setStatusCode(drogon::k200OK);
