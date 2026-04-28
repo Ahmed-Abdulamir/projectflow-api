@@ -1,8 +1,8 @@
 # ProjectFlow API
 
-ProjectFlow API is a RESTful backend service written in C++ using Drogon and PostgreSQL.
+ProjectFlow API is a production-like RESTful backend service written in C++ using Drogon and PostgreSQL.
 
-The project started as a task manager API and is being developed into a production-like project management backend. It follows layered architecture and provides CRUD operations for tasks, PostgreSQL persistence, health checks, input validation, structured error responses, filtering, search, pagination, and sorting.
+The project started as a task manager API and is being developed into a project management / issue tracking backend. It follows layered architecture and supports projects, tasks, comments, activity logs, PostgreSQL persistence, health checks, input validation, structured error responses, filtering, search, pagination, and sorting.
 
 ## Tech Stack
 
@@ -15,7 +15,12 @@ The project started as a task manager API and is being developed into a producti
 
 ## Features
 
-- Task CRUD
+- Projects CRUD
+- Tasks CRUD
+- Task comments
+- Activity log
+- Project-task relation
+- Nested resources: project tasks and task comments
 - Extended task model
 - Health check endpoint
 - Database health check endpoint
@@ -51,15 +56,36 @@ Model       - stores data structures
 ProjectFlow API/
 ├─ controllers/
 │  ├─ TaskController.h
-│  └─ TaskController.cpp
+│  ├─ TaskController.cpp
+│  ├─ ProjectController.h
+│  ├─ ProjectController.cpp
+│  ├─ CommentController.h
+│  ├─ CommentController.cpp
+│  ├─ ActivityController.h
+│  └─ ActivityController.cpp
 ├─ services/
 │  ├─ TaskService.h
-│  └─ TaskService.cpp
+│  ├─ TaskService.cpp
+│  ├─ ProjectService.h
+│  ├─ ProjectService.cpp
+│  ├─ CommentService.h
+│  ├─ CommentService.cpp
+│  ├─ ActivityService.h
+│  └─ ActivityService.cpp
 ├─ repositories/
 │  ├─ TaskRepository.h
-│  └─ TaskRepository.cpp
+│  ├─ TaskRepository.cpp
+│  ├─ ProjectRepository.h
+│  ├─ ProjectRepository.cpp
+│  ├─ CommentRepository.h
+│  ├─ CommentRepository.cpp
+│  ├─ ActivityRepository.h
+│  └─ ActivityRepository.cpp
 ├─ models/
-│  └─ Task.h
+│  ├─ Task.h
+│  ├─ Project.h
+│  ├─ Comment.h
+│  └─ ActivityLog.h
 ├─ database/
 │  └─ schema.sql
 ├─ main.cpp
@@ -75,14 +101,15 @@ Current task representation:
 
 ```json
 {
-  "id": 1,
-  "title": "Implement validation",
-  "description": "Add validation for status and priority",
-  "status": "in_progress",
+  "id": 13,
+  "project_id": 1,
+  "title": "Task inside project",
+  "description": "Linked to project",
+  "status": "todo",
   "priority": "high",
   "completed": false,
-  "created_at": "2026-04-27T18:51:32",
-  "updated_at": "2026-04-27T19:24:53"
+  "created_at": "2026-04-29T00:54:55",
+  "updated_at": "2026-04-29T00:54:55"
 }
 ```
 
@@ -103,6 +130,42 @@ medium
 high
 ```
 
+## Project Model
+
+```json
+{
+  "id": 1,
+  "name": "Backend Internship Prep",
+  "description": "Project for C++ backend portfolio",
+  "created_at": "2026-04-28T23:50:05",
+  "updated_at": "2026-04-28T23:58:53"
+}
+```
+
+## Comment Model
+
+```json
+{
+  "id": 1,
+  "task_id": 13,
+  "content": "This task belongs to project 1 and now has a comment",
+  "created_at": "2026-04-29T01:20:03"
+}
+```
+
+## Activity Log Model
+
+```json
+{
+  "id": 10,
+  "entity_type": "TASK",
+  "entity_id": 15,
+  "action": "TASK_DELETED",
+  "description": "Task deleted",
+  "created_at": "2026-04-29T01:44:57"
+}
+```
+
 ## Database Schema
 
 The database schema is located in:
@@ -111,30 +174,14 @@ The database schema is located in:
 database/schema.sql
 ```
 
-Current `tasks` table:
+Main tables:
 
-```sql
-CREATE TABLE tasks (
-    id SERIAL PRIMARY KEY,
+- `projects`
+- `tasks`
+- `comments`
+- `activity_logs`
 
-    title TEXT NOT NULL,
-    description TEXT NOT NULL DEFAULT '',
-
-    status TEXT NOT NULL DEFAULT 'todo',
-    priority TEXT NOT NULL DEFAULT 'medium',
-
-    completed BOOLEAN NOT NULL DEFAULT FALSE,
-
-    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
-
-    CONSTRAINT tasks_status_check
-        CHECK (status IN ('todo', 'in_progress', 'done', 'cancelled')),
-
-    CONSTRAINT tasks_priority_check
-        CHECK (priority IN ('low', 'medium', 'high'))
-);
-```
+The schema includes foreign keys for project-task and task-comment relations.
 
 ## API Endpoints
 
@@ -142,11 +189,21 @@ CREATE TABLE tasks (
 |---|---|---|
 | GET | `/health` | Check if the server is running |
 | GET | `/health/db` | Check database connection |
-| POST | `/tasks` | Create a new task |
+| GET | `/activity` | Get recent activity logs |
+| POST | `/projects` | Create a project |
+| GET | `/projects` | Get all projects |
+| GET | `/projects/{id}` | Get project by ID |
+| PATCH | `/projects/{id}` | Update project by ID |
+| DELETE | `/projects/{id}` | Delete project by ID |
+| GET | `/projects/{id}/tasks` | Get tasks for a project |
+| POST | `/tasks` | Create a task |
 | GET | `/tasks` | Get tasks with filtering, search, pagination, and sorting |
 | GET | `/tasks/{id}` | Get task by ID |
 | PATCH | `/tasks/{id}` | Update task by ID |
 | DELETE | `/tasks/{id}` | Delete task by ID |
+| POST | `/tasks/{id}/comments` | Create a comment for a task |
+| GET | `/tasks/{id}/comments` | Get comments for a task |
+| DELETE | `/comments/{id}` | Delete comment by ID |
 
 ## Query Parameters for `GET /tasks`
 
@@ -175,6 +232,44 @@ Example:
 
 ```text
 GET /tasks?status=todo&priority=medium&search=api&limit=5&offset=0&sort=created_at_desc
+```
+
+## Activity Log
+
+The API records important system events in the activity log.
+
+Tracked events:
+
+```text
+PROJECT_CREATED
+PROJECT_UPDATED
+PROJECT_DELETED
+TASK_CREATED
+TASK_UPDATED
+TASK_DELETED
+COMMENT_CREATED
+COMMENT_DELETED
+```
+
+Example request:
+
+```powershell
+Invoke-RestMethod -Uri "http://localhost:8080/activity?limit=10&offset=0" -Method GET
+```
+
+Example response:
+
+```json
+[
+  {
+    "id": 10,
+    "entity_type": "TASK",
+    "entity_id": 15,
+    "action": "TASK_DELETED",
+    "description": "Task deleted",
+    "created_at": "2026-04-29T01:44:57"
+  }
+]
 ```
 
 ## Example Requests
@@ -209,37 +304,58 @@ Example response:
 }
 ```
 
-### Create task with only title
+### Create project
+
+```powershell
+Invoke-RestMethod -Uri "http://localhost:8080/projects" `
+  -Method POST `
+  -ContentType "application/json" `
+  -Body '{"name":"Backend Internship Prep","description":"Project for C++ backend portfolio"}'
+```
+
+### Get projects
+
+```powershell
+Invoke-RestMethod -Uri "http://localhost:8080/projects" -Method GET
+```
+
+### Get project by ID
+
+```powershell
+Invoke-RestMethod -Uri "http://localhost:8080/projects/1" -Method GET
+```
+
+### Update project
+
+```powershell
+Invoke-RestMethod -Uri "http://localhost:8080/projects/1" `
+  -Method PATCH `
+  -ContentType "application/json" `
+  -Body '{"name":"Updated Backend Prep","description":"Updated project description"}'
+```
+
+### Delete project
+
+```powershell
+Invoke-RestMethod -Uri "http://localhost:8080/projects/1" -Method DELETE
+```
+
+### Create task with project_id
+
+```powershell
+Invoke-RestMethod -Uri "http://localhost:8080/tasks" `
+  -Method POST `
+  -ContentType "application/json" `
+  -Body '{"project_id":1,"title":"Task inside project","description":"Linked to project","status":"todo","priority":"high"}'
+```
+
+### Create task without project_id
 
 ```powershell
 Invoke-RestMethod -Uri "http://localhost:8080/tasks" `
   -Method POST `
   -ContentType "application/json" `
   -Body '{"title":"Learn Drogon"}'
-```
-
-Example response:
-
-```json
-{
-  "id": 1,
-  "title": "Learn Drogon",
-  "description": "",
-  "status": "todo",
-  "priority": "medium",
-  "completed": false,
-  "created_at": "2026-04-27T18:51:32",
-  "updated_at": "2026-04-27T18:51:32"
-}
-```
-
-### Create task with extended fields
-
-```powershell
-Invoke-RestMethod -Uri "http://localhost:8080/tasks" `
-  -Method POST `
-  -ContentType "application/json" `
-  -Body '{"title":"Implement validation","description":"Add validation for status and priority","status":"in_progress","priority":"high"}'
 ```
 
 ### Get all tasks
@@ -257,13 +373,13 @@ Invoke-RestMethod -Uri "http://localhost:8080/tasks?status=todo&priority=medium&
 ### Get task by ID
 
 ```powershell
-Invoke-RestMethod -Uri "http://localhost:8080/tasks/1" -Method GET
+Invoke-RestMethod -Uri "http://localhost:8080/tasks/13" -Method GET
 ```
 
 ### Update task
 
 ```powershell
-Invoke-RestMethod -Uri "http://localhost:8080/tasks/1" `
+Invoke-RestMethod -Uri "http://localhost:8080/tasks/13" `
   -Method PATCH `
   -ContentType "application/json" `
   -Body '{"title":"Updated task","description":"Updated description","status":"done","priority":"medium","completed":true}'
@@ -272,7 +388,34 @@ Invoke-RestMethod -Uri "http://localhost:8080/tasks/1" `
 ### Delete task
 
 ```powershell
-Invoke-RestMethod -Uri "http://localhost:8080/tasks/1" -Method DELETE
+Invoke-RestMethod -Uri "http://localhost:8080/tasks/13" -Method DELETE
+```
+
+### Get tasks for project
+
+```powershell
+Invoke-RestMethod -Uri "http://localhost:8080/projects/1/tasks" -Method GET
+```
+
+### Create comment for task
+
+```powershell
+Invoke-RestMethod -Uri "http://localhost:8080/tasks/13/comments" `
+  -Method POST `
+  -ContentType "application/json" `
+  -Body '{"content":"This task belongs to project 1 and now has a comment"}'
+```
+
+### Get comments for task
+
+```powershell
+Invoke-RestMethod -Uri "http://localhost:8080/tasks/13/comments" -Method GET
+```
+
+### Delete comment
+
+```powershell
+Invoke-RestMethod -Uri "http://localhost:8080/comments/1" -Method DELETE
 ```
 
 ## Error Format
@@ -301,7 +444,15 @@ INVALID_LIMIT
 INVALID_OFFSET
 INVALID_SEARCH
 INVALID_SORT
+INVALID_PROJECT_ID
+INVALID_PROJECT_NAME
+INVALID_PROJECT_DESCRIPTION
+INVALID_TASK_ID
+INVALID_COMMENT_ID
+INVALID_COMMENT_CONTENT
 TASK_NOT_FOUND
+PROJECT_NOT_FOUND
+COMMENT_NOT_FOUND
 DATABASE_CONNECTION_ERROR
 INTERNAL_SERVER_ERROR
 ```
@@ -373,7 +524,12 @@ http://localhost:8080
 
 Implemented:
 
+- Projects CRUD
 - Task CRUD
+- Task comments
+- Activity log
+- Project-task relation
+- Nested endpoints
 - Extended task model
 - Health checks
 - PostgreSQL integration
@@ -389,21 +545,12 @@ Implemented:
 
 Planned improvements:
 
-- Projects support
-- Link tasks to projects
-- Comments
-- Activity log
 - Users and authentication
 - Unit and integration tests
 - Docker Compose setup
 - CI pipeline
+- Database migrations
 
 ## Resume Description
 
-ProjectFlow API is a production-like RESTful backend service written in C++ using Drogon and PostgreSQL. It implements task CRUD operations, layered architecture, PostgreSQL persistence, health checks, input validation, structured error handling, filtering, search, pagination, sorting, and CMake/vcpkg-based build configuration.
-
-Projects CRUD
-project_id в Task
-GET /projects/{id}/tasks
-примеры POST /projects
-примеры POST /tasks с project_id
+ProjectFlow API is a production-like RESTful backend service written in C++ using Drogon and PostgreSQL. It implements projects, tasks, comments, activity logs, PostgreSQL persistence, layered architecture, input validation, structured error handling, filtering, search, pagination, sorting, nested resources, and CMake/vcpkg-based build configuration.
