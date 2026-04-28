@@ -1,16 +1,11 @@
 #include "TaskController.h"
 
 #include "../repositories/TaskRepository.h"
+#include "../repositories/ActivityRepository.h"
+
 #include "../services/TaskService.h"
+#include "../services/ActivityService.h"
 
-#include <drogon/drogon.h>
-#include <exception>
-#include <string>
-
-#include "TaskController.h"
-
-#include "../repositories/TaskRepository.h"
-#include "../services/TaskService.h"
 
 #include <drogon/drogon.h>
 #include <exception>
@@ -190,6 +185,15 @@ void TaskController::CreateTask(
         TaskService service(repository);
 
         Task task = service.CreateTask(projectId, title, description, status, priority);
+
+        ActivityRepository activityRepository(dbClient);
+        ActivityService activityService(activityRepository);
+
+        activityService.CreateActivity(
+            "TASK",
+            task.id,
+            "TASK_CREATED",
+            "Task created: " + task.title);
 
         Json::Value result = TaskToJson(task);
 
@@ -429,14 +433,23 @@ void TaskController::DeleteTaskById(
 
         bool deleted = service.DeleteTaskById(id);
 
-        if (!deleted) {
+        if (!deleted)
+        {
             callback(MakeErrorResponse(
                 "TASK_NOT_FOUND",
                 "Task not found",
-                drogon::k404NotFound
-            ));
+                drogon::k404NotFound));
             return;
         }
+
+        ActivityRepository activityRepository(dbClient);
+        ActivityService activityService(activityRepository);
+
+        activityService.CreateActivity(
+            "TASK",
+            id,
+            "TASK_DELETED",
+            "Task deleted");
 
         Json::Value result;
         result["message"] = "Task deleted";
@@ -545,6 +558,15 @@ void TaskController::UpdateTaskById(
             ));
             return;
         }
+
+        ActivityRepository activityRepository(dbClient);
+        ActivityService activityService(activityRepository);
+
+        activityService.CreateActivity(
+            "TASK",
+            task->id,
+            "TASK_UPDATED",
+            "Task updated: " + task->title);
 
         Json::Value result = TaskToJson(*task);
 

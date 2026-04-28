@@ -1,3 +1,4 @@
+DROP TABLE IF EXISTS activity_logs;
 DROP TABLE IF EXISTS comments;
 DROP TABLE IF EXISTS tasks;
 DROP TABLE IF EXISTS projects;
@@ -41,6 +42,18 @@ CREATE TABLE comments (
     task_id INT NOT NULL REFERENCES tasks(id) ON DELETE CASCADE,
 
     content TEXT NOT NULL,
+
+    created_at TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE activity_logs (
+    id SERIAL PRIMARY KEY,
+
+    entity_type TEXT NOT NULL,
+    entity_id INT NOT NULL,
+
+    action TEXT NOT NULL,
+    description TEXT NOT NULL DEFAULT '',
 
     created_at TIMESTAMP NOT NULL DEFAULT NOW()
 );

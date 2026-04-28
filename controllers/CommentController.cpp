@@ -4,6 +4,8 @@
 #include "../repositories/TaskRepository.h"
 #include "../services/CommentService.h"
 #include "../services/TaskService.h"
+#include "../repositories/ActivityRepository.h"
+#include "../services/ActivityService.h"
 
 #include <drogon/drogon.h>
 #include <exception>
@@ -87,6 +89,15 @@ void CommentController::CreateComment(
         CommentService commentService(commentRepository);
 
         Comment comment = commentService.CreateComment(taskId, content);
+
+        ActivityRepository activityRepository(dbClient);
+        ActivityService activityService(activityRepository);
+
+        activityService.CreateActivity(
+            "COMMENT",
+            comment.id,
+            "COMMENT_CREATED",
+            "Comment created for task " + std::to_string(taskId));
 
         Json::Value result = CommentToJson(comment);
 
@@ -215,6 +226,15 @@ void CommentController::DeleteComment(
                 drogon::k404NotFound));
             return;
         }
+
+        ActivityRepository activityRepository(dbClient);
+        ActivityService activityService(activityRepository);
+
+        activityService.CreateActivity(
+            "COMMENT",
+            commentId,
+            "COMMENT_DELETED",
+            "Comment deleted");
 
         Json::Value result;
         result["message"] = "Comment deleted";

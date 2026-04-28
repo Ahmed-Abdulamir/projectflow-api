@@ -4,6 +4,8 @@
 #include "../services/ProjectService.h"
 #include "../repositories/TaskRepository.h"
 #include "../services/TaskService.h"
+#include "../repositories/ActivityRepository.h"
+#include "../services/ActivityService.h"
 
 #include <drogon/drogon.h>
 #include <exception>
@@ -113,6 +115,15 @@ void ProjectController::CreateProject(
         ProjectService service(repository);
 
         Project project = service.CreateProject(name, description);
+
+        ActivityRepository activityRepository(dbClient);
+        ActivityService activityService(activityRepository);
+
+        activityService.CreateActivity(
+            "PROJECT",
+            project.id,
+            "PROJECT_CREATED",
+            "Project created: " + project.name);
 
         Json::Value result = ProjectToJson(project);
 
@@ -298,6 +309,15 @@ void ProjectController::UpdateProjectById(
             return;
         }
 
+        ActivityRepository activityRepository(dbClient);
+        ActivityService activityService(activityRepository);
+
+        activityService.CreateActivity(
+            "PROJECT",
+            project->id,
+            "PROJECT_UPDATED",
+            "Project updated: " + project->name);
+
         Json::Value result = ProjectToJson(*project);
 
         auto response = drogon::HttpResponse::newHttpJsonResponse(result);
@@ -374,6 +394,15 @@ void ProjectController::DeleteProjectById(
                 drogon::k404NotFound));
             return;
         }
+
+        ActivityRepository activityRepository(dbClient);
+        ActivityService activityService(activityRepository);
+
+        activityService.CreateActivity(
+            "PROJECT",
+            id,
+            "PROJECT_DELETED",
+            "Project deleted");
 
         Json::Value result;
         result["message"] = "Project deleted";
