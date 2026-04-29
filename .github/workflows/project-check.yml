@@ -100,3 +100,4 @@ jobs:
           }
 
           Write-Host "Database schema contains required tables."
+
