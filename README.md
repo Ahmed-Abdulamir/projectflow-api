@@ -190,6 +190,11 @@ Main tables:
 
 The schema includes foreign keys for project-task and task-comment relations.
 
+The project includes both a full schema file and versioned SQL migrations.
+
+- `database/schema.sql` — full schema for quick local setup and Docker Compose initialization
+- `database/migrations/` — versioned SQL migration files that describe database evolution step by step
+
 ## API Endpoints
 
 | Method | Endpoint | Description |
