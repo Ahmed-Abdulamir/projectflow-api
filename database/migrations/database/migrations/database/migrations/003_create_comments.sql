@@ -1,0 +1,9 @@
+CREATE TABLE comments (
+    id SERIAL PRIMARY KEY,
+
+    task_id INT NOT NULL REFERENCES tasks(id) ON DELETE CASCADE,
+
+    content TEXT NOT NULL,
+
+    created_at TIMESTAMP NOT NULL DEFAULT NOW()
+);
