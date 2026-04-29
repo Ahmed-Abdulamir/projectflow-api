@@ -1,5 +1,12 @@
 # ProjectFlow API
 
+![C++](https://img.shields.io/badge/C%2B%2B-17-blue)
+![Drogon](https://img.shields.io/badge/Drogon-Framework-green)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Database-blue)
+![CMake](https://img.shields.io/badge/CMake-Build-red)
+![License](https://img.shields.io/badge/License-MIT-yellow)
+![Project Check](https://github.com/Ahmed-Abdulamir/projectflow-api/actions/workflows/project-check.yml/badge.svg)
+
 ProjectFlow API is a production-like RESTful backend service written in C++ using Drogon and PostgreSQL.
 
 The project started as a task manager API and is being developed into a project management / issue tracking backend. It follows layered architecture and supports projects, tasks, comments, activity logs, PostgreSQL persistence, health checks, input validation, structured error responses, filtering, search, pagination, and sorting.
@@ -561,3 +568,54 @@ The project includes a PowerShell smoke test script:
 
 ```powershell
 .\tests\smoke_test.ps1
+
+## Current Status
+
+Implemented:
+
+- Projects CRUD
+- Task CRUD
+- Task comments
+- Activity log
+- Project-task relation
+- Nested endpoints
+- Extended task model
+- Health checks
+- PostgreSQL integration
+- Docker Compose for PostgreSQL
+- Structured errors
+- Input validation
+- Filtering
+- Search
+- Pagination
+- Sorting
+- Layered architecture
+- Local run script
+- Database schema file
+- Smoke test script
+- GitHub Actions project check
+
+Planned improvements:
+
+- Users and authentication
+- Unit and integration tests
+- Full backend Docker image
+- Database migrations
+
+## Resume Description
+
+ProjectFlow API is a production-like RESTful backend service written in C++ using Drogon and PostgreSQL. It implements projects, tasks, comments, activity logs, PostgreSQL persistence, layered architecture, input validation, structured error handling, filtering, search, pagination, sorting, nested resources, Docker Compose for PostgreSQL, smoke tests, GitHub Actions checks, and CMake/vcpkg-based build configuration.
+
+## Smoke Tests
+
+The project includes a PowerShell smoke test script:
+
+```powershell
+.\tests\smoke_test.ps1
+```
+
+The script checks health endpoints, project creation, task creation, project-task relation, comments, activity logs, and cleanup.
+
+## License
+
+This project is licensed under the MIT License.
