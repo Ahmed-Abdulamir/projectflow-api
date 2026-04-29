@@ -94,7 +94,12 @@ ProjectFlow API/
 │  ├─ Comment.h
 │  └─ ActivityLog.h
 ├─ database/
-│  └─ schema.sql
+│  ├─ schema.sql
+│  └─ migrations/
+│     ├─ 001_create_projects.sql
+│     ├─ 002_create_tasks.sql
+│     ├─ 003_create_comments.sql
+│     └─ 004_create_activity_logs.sql
 ├─ main.cpp
 ├─ CMakeLists.txt
 ├─ run.example.ps1
@@ -180,6 +185,16 @@ The database schema is located in:
 ```text
 database/schema.sql
 ```
+
+
+добавь вот это:
+
+````md
+The project includes both a full schema file and versioned SQL migrations.
+
+- `database/schema.sql` — full schema for quick local setup and Docker Compose initialization
+- `database/migrations/` — versioned SQL migration files that describe database evolution step by step
+
 
 Main tables:
 
@@ -554,6 +569,7 @@ Implemented:
 - Layered architecture
 - Local run script
 - Database schema file
+- Versioned SQL migration files
 
 Planned improvements:
 
@@ -561,7 +577,6 @@ Planned improvements:
 - Unit and integration tests
 - Docker Compose setup
 - CI pipeline
-- Database migrations
 
 ## Resume Description
 
